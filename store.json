@@ -1,0 +1,11 @@
+{
+  "id": "tidy",
+  "name": "Tidy",
+  "repo": "its-ash/tidy",
+  "package": "com.itsash.tidy",
+  "tagline": "Clean your gallery: duplicates, similar shots, blurry photos, screenshots and big videos.",
+  "description": "Tidy scans your photos and videos on the phone and groups the clutter: exact duplicates, similar burst shots (it keeps the best one), blurry photos, screenshots, WhatsApp and Telegram media, large videos and old downloads. Review each group, pick what to remove and delete it in one step, or move it to the trash. Everything is analysed on your phone and nothing is uploaded.",
+  "category": "Tools",
+  "icon": "assets/icon/logo-1024.png",
+  "homepage": "https://tidy.itsash.in/"
+}

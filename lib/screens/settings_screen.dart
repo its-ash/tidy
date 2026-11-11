@@ -98,6 +98,8 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
               const UiGap(UiSpace.lg),
+              const UiAppearanceSection(),
+              const UiGap(UiSpace.lg),
               const UiUpdateSection(storeId: 'tidy'),
               const UiGap(UiSpace.lg),
               const UiDeveloperSection(),

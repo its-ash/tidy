@@ -20,7 +20,6 @@ class TidyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return UiApp(
       title: 'Tidy',
-      themeMode: ThemeMode.system,
       home: HomeScreen(store: store),
     );
   }

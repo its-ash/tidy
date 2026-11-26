@@ -34,8 +34,10 @@ class MainActivity : FlutterActivity() {
     private val main = Handler(Looper.getMainLooper())
     private val scanExecutor = Executors.newSingleThreadExecutor()
     private val thumbExecutor = Executors.newFixedThreadPool(3)
-    private val cache by lazy { AnalysisCache(applicationContext) }
-    private val deleter by lazy { DeleteCoordinator(this) }
+    private val cacheLazy = lazy { AnalysisCache(applicationContext) }
+    private val cache by cacheLazy
+    private val deleterLazy = lazy { DeleteCoordinator(this) }
+    private val deleter by deleterLazy
     private var scanner: Scanner? = null
     private var events: EventChannel.EventSink? = null
 
@@ -151,6 +153,10 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         scanner?.cancel()
+        scanExecutor.shutdownNow()
+        thumbExecutor.shutdownNow()
+        if (deleterLazy.isInitialized()) deleter.shutdown()
+        if (cacheLazy.isInitialized()) cache.close()
         super.onDestroy()
     }
 }

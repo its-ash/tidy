@@ -2,11 +2,13 @@ package com.itsash.tidy
 
 import android.app.Activity
 import android.app.RecoverableSecurityException
+import android.content.IntentSender
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import io.flutter.plugin.common.MethodChannel
 import java.util.concurrent.Executors
 import java.util.concurrent.SynchronousQueue
@@ -88,34 +90,47 @@ class DeleteCoordinator(private val activity: Activity) {
         }
     }
 
+    fun shutdown() {
+        worker.shutdownNow()
+    }
+
     private fun deleteLegacy(items: List<MediaRef>) {
         val resolver = activity.contentResolver
         val done = ArrayList<Long>()
         var cancelled = false
         for (item in items) {
+            if (Thread.currentThread().isInterrupted) return
             try {
                 if (tryDelete(resolver, item)) done.add(item.key)
-            } catch (e: RecoverableSecurityException) {
+            } catch (e: SecurityException) {
+                val sender = if (Build.VERSION.SDK_INT >= 29) recoverableIntentSender(e) else null
+                if (sender == null) continue
                 main.post {
                     try {
-                        activity.startIntentSenderForResult(e.userAction.actionIntent.intentSender, REQ_LEGACY, null, 0, 0, 0)
+                        activity.startIntentSenderForResult(sender, REQ_LEGACY, null, 0, 0, 0)
                     } catch (_: Exception) {
                         legacyAnswer.offer(Activity.RESULT_CANCELED, 1, TimeUnit.SECONDS)
                     }
                 }
-                val answer = legacyAnswer.poll(10, TimeUnit.MINUTES)
+                val answer = try {
+                    legacyAnswer.poll(10, TimeUnit.MINUTES)
+                } catch (_: InterruptedException) {
+                    return
+                }
                 if (answer == Activity.RESULT_OK && runCatching { tryDelete(resolver, item) }.getOrDefault(false)) {
                     done.add(item.key)
                 } else if (answer != Activity.RESULT_OK) {
                     cancelled = true
                     break
                 }
-            } catch (_: SecurityException) {
-                // Not allowed to delete this one: skip it.
             }
         }
         main.post { deleted.addAll(done); finish(cancelled) }
     }
+
+    @RequiresApi(29)
+    private fun recoverableIntentSender(e: SecurityException): IntentSender? =
+        if (e is RecoverableSecurityException) e.userAction.actionIntent.intentSender else null
 
     private fun tryDelete(resolver: android.content.ContentResolver, item: MediaRef): Boolean =
         resolver.delete(item.uri, null, null) > 0

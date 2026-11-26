@@ -1,7 +1,7 @@
 name: tidy
 description: "Tidy: find duplicate, similar, blurry and junk photos and videos, and delete them by group."
 publish_to: 'none'
-version: 1.0.4+5
+version: 1.0.5+6
 
 environment:
   sdk: ^3.12.2
